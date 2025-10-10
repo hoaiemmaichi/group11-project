@@ -24,17 +24,25 @@
 
 // export default App;
 
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 import UserList from "./UserList";
 import AddUser from "./AddUser";
 
 function App() {
+  const [refreshFlag, setRefreshFlag] = useState(0);
+
+  const handleUserAdded = () => {
+    setRefreshFlag(prev => prev + 1);
+  };
+
   return (
-    <div className="App">
-      <h1>Quản lý người dùng</h1>
-      <AddUser />
-      <UserList />
+    <div className="app-container">
+      <div className="main-card">
+        <h1 className="main-title">Quản lý người dùng</h1>
+        <AddUser onAdded={handleUserAdded} />
+        <UserList refreshFlag={refreshFlag} />
+      </div>
     </div>
   );
 }
