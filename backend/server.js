@@ -16,11 +16,18 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const userRoutes = require('./routes/user');
 const User = require('./models/User'); // ✅ import model đúng đường dẫn
 
 dotenv.config();
 const app = express();
+
+// ✅ Enable CORS cho frontend
+app.use(cors({
+  origin: ['http://localhost:3001', 'http://localhost:3000'], // Support cả 2 port
+  credentials: true
+}));
 
 app.use(express.json());
 
