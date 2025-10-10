@@ -18,7 +18,6 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const userRoutes = require('./routes/user');
-const User = require('./models/User'); // ✅ import model đúng đường dẫn
 
 dotenv.config();
 const app = express();
@@ -36,29 +35,8 @@ mongoose.connect('mongodb+srv://hoaiem:hoaiem1234@groupdb.14hxmuu.mongodb.net/gr
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ Connection error:', err));
 
-// 📥 POST: thêm user mới
-app.post('/users', async (req, res) => {
-  try {
-    const user = new User(req.body);
-    await user.save();
-    res.status(201).send(user);
-  } catch (err) {
-    res.status(400).send({ error: err.message });
-  }
-});
-
-// 📤 GET: lấy danh sách user
-app.get('/users', async (req, res) => {
-  try {
-    const users = await User.find();
-    res.status(200).send(users);
-  } catch (err) {
-    res.status(500).send({ error: err.message });
-  }
-});
-
-// Hoặc nếu bạn đã có routes/user.js riêng thì có thể dùng:
-// app.use('/', userRoutes);
+// Dùng routes/user.js cho toàn bộ CRUD
+app.use('/', userRoutes);
 
 // 🚀 Khởi chạy server
 const PORT = process.env.PORT || 3000;
