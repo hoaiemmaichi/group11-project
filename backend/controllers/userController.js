@@ -10,25 +10,27 @@
 
 
 // controllers/userController.js
-const User = require('../models/User');
+const User = require('../models/User')
 
-// GET /users
+// Lấy danh sách user
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find(); // lấy dữ liệu thật
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const users = await User.find()
+    res.json(users)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
   }
-};
+}
 
-// POST /users
+// Thêm user mới
 exports.createUser = async (req, res) => {
   try {
-    const newUser = new User(req.body);
-    await newUser.save(); // lưu vào MongoDB
-    res.status(201).json(newUser);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    const { name, email, password } = req.body
+    const newUser = new User({ name, email, password })
+    await newUser.save()
+    res.status(201).json({ message: 'Tạo user thành công!', user: newUser })
+  } catch (error) {
+    res.status(400).json({ message: error.message })
   }
-};
+}
+
