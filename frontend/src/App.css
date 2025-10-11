@@ -1,3 +1,19 @@
+.btn.edit, .btn.delete, .btn.cancel {
+  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px 0 rgba(25,118,210,0.08);
+  transition: background 0.2s;
+  margin-right: 8px;
+}
+.btn.edit:hover, .btn.delete:hover, .btn.cancel:hover {
+  background: linear-gradient(90deg, #1565c0 0%, #1976d2 100%);
+}
 
 body {
   background: linear-gradient(120deg, #f0f4f8 0%, #e0e7ef 100%);
@@ -92,8 +108,20 @@ body {
   box-shadow: 0 1px 4px 0 rgba(25,118,210,0.07);
   padding: 16px 18px;
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+.user-info {
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  min-width: 0;
+}
+.user-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
 }
 .user-name {
   font-weight: 600;

@@ -40,18 +40,66 @@ const API = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
 export default function UserList({ refreshFlag }) {
   const [users, setUsers] = useState([]);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+
   useEffect(() => { fetchUsers(); }, [refreshFlag]);
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users from:', `${API}/users`);
       const res = await axios.get(`${API}/users`);
-      console.log('Users fetched:', res.data);
       setUsers(res.data);
     } catch (err) {
-      console.error("Fetch users error:", err);
-      alert(`Lỗi khi lấy danh sách: ${err.response?.data?.error || err.message}`);
       setUsers([]);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn xóa user này?')) return;
+    try {
+      await axios.delete(`${API}/users/${id}`);
+      await fetchUsers(); // Luôn lấy lại danh sách user mới nhất từ backend
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        alert('Người dùng này đã bị xóa hoặc không tồn tại!');
+        await fetchUsers();
+      } else {
+        alert('Xóa thất bại!');
+      }
+    }
+  };
+
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setEditName(user.name);
+    setEditEmail(user.email);
+  };
+
+  const handleEditCancel = () => {
+    setEditingUser(null);
+    setEditName("");
+    setEditEmail("");
+  };
+
+  const handleEditSave = async () => {
+    try {
+      const id = editingUser._id;
+      await axios.put(`${API}/users/${id}`, { name: editName, email: editEmail });
+      await fetchUsers(); // Luôn lấy lại danh sách user mới nhất từ backend
+      setEditingUser(null);
+      setEditName("");
+      setEditEmail("");
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        alert('Người dùng này đã bị xóa hoặc không tồn tại!');
+        await fetchUsers();
+        setEditingUser(null);
+        setEditName("");
+        setEditEmail("");
+      } else {
+        alert('Cập nhật thất bại!');
+      }
     }
   };
 
@@ -64,8 +112,29 @@ export default function UserList({ refreshFlag }) {
         ) : (
           users.map(u => (
             <div className="user-card" key={u._id}>
-              <div className="user-name">{u.name}</div>
-              <div className="user-email">{u.email}</div>
+              {editingUser && u._id === editingUser._id ? (
+                <>
+                  <div className="user-info" style={{marginRight:16}}>
+                    <input className="input" value={editName} onChange={e => setEditName(e.target.value)} style={{marginBottom:4}} />
+                    <input className="input" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+                  </div>
+                  <div className="user-actions">
+                    <button className="btn edit" onClick={handleEditSave}>Lưu</button>
+                    <button className="btn cancel" onClick={handleEditCancel}>Hủy</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="user-info" style={{marginRight:16}}>
+                    <div className="user-name">{u.name}</div>
+                    <div className="user-email">{u.email}</div>
+                  </div>
+                  <div className="user-actions">
+                    <button className="btn edit" onClick={() => handleEdit(u)}>Sửa</button>
+                    <button className="btn delete" onClick={() => handleDelete(u._id)}>Xóa</button>
+                  </div>
+                </>
+              )}
             </div>
           ))
         )}
