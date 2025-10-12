@@ -1,0 +1,5 @@
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-content{background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:20px 22px;max-width:420px;width:92%}
+.modal-title{margin:0 0 10px 0;color:#0d47a1}
+.modal-body{color:#37474f;margin-bottom:16px;white-space:pre-wrap}
+.modal-actions{display:flex;justify-content:flex-end}
