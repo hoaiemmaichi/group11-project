@@ -1,4 +1,11 @@
+
 # GROUP 11
+# GROUP 11
+
+# group11-project
+8e4094a (Thêm file server.js và User.js)
+
+
 
 Thông tin nhóm
 - Tên nhóm: Group 11 - Project
@@ -45,3 +52,6 @@ Công nghệ sử dụng
 
 ## Liên kết
 - Repository GitHub: [https://github.com/hoaiemmaichi/group11-project.git](https://github.com/hoaiemmaichi/group11-project.git)
+
+ 7ffea2a (Cập nhật nội dung README.md)
+

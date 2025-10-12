@@ -29,6 +29,7 @@ app.use(cors({
   credentials: true
 }));
 
+
 app.use(express.json());
 
 // 🔗 Kết nối MongoDB Atlas
@@ -59,6 +60,19 @@ app.get('/users', async (req, res) => {
 
 // Hoặc nếu bạn đã có routes/user.js riêng thì có thể dùng:
 // app.use('/', userRoutes);
+
+
+
+app.use(express.json());
+
+// 🔗 Kết nối MongoDB Atlas
+mongoose.connect('mongodb+srv://hoaiem:hoaiem1234@groupdb.14hxmuu.mongodb.net/groupDB?retryWrites=true&w=majority')
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ Connection error:', err));
+
+// Dùng routes/user.js cho toàn bộ CRUD
+app.use('/', userRoutes);
+
 
 // 🚀 Khởi chạy server
 const PORT = process.env.PORT || 3000;
