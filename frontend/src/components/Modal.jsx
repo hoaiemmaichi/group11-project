@@ -1,16 +1,16 @@
 import React from 'react';
 import './Modal.css';
 
-export default function Modal({ open, title, message, onClose }) {
+export default function Modal({ open, title, children, onClose }) {
   if (!open) return null;
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        {title && <h3 className="modal-title">{title}</h3>}
-        <div className="modal-body">{message}</div>
-        <div className="modal-actions">
-          <button className="btn cancel" onClick={onClose}>OK</button>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          {title && <h3 className="modal-title">{title}</h3>}
+          <button className="modal-close" onClick={onClose}>×</button>
         </div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );
