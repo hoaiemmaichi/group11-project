@@ -2,11 +2,13 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const auth = require('../middleware/auth');
+const { requireRole, adminOrSelfByParamId } = require('../middleware/rbac');
 
-router.get('/users', userController.getUsers);
-router.post('/users', userController.createUser);
-router.put('/users/:id', userController.updateUser); // PUT
-router.delete('/users/:id', userController.deleteUser); // DELETE
+// Users endpoints (protected + RBAC)
+router.get('/users', auth, requireRole('admin'), userController.getUsers);
+router.post('/users', auth, requireRole('admin'), userController.createUser);
+router.put('/users/:id', auth, requireRole('admin'), userController.updateUser); // PUT by admin
+router.delete('/users/:id', auth, adminOrSelfByParamId('id'), userController.deleteUser); // DELETE by admin or self
 
 // Profile routes (require auth)
 router.get('/profile', auth, userController.getProfile);
