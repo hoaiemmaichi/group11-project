@@ -88,6 +88,22 @@ body {
   background: linear-gradient(90deg, #1565c0 0%, #1976d2 100%);
 }
 
+/* small button variant used for inline action buttons */
+.btn.small {
+  padding: 6px 14px;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Centered auth button container */
+.auth-actions {
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:12px;
+}
+
 .user-list-section {
   margin-top: 12px;
 }

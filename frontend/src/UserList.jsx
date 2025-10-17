@@ -38,7 +38,7 @@ import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-export default function UserList({ refreshFlag }) {
+export default function UserList({ refreshFlag, token }) {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
   const [editName, setEditName] = useState("");
@@ -48,9 +48,11 @@ export default function UserList({ refreshFlag }) {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API}/users`);
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      const res = await axios.get(`${API}/users`, config);
       setUsers(res.data);
     } catch (err) {
+      console.error('Fetch users error', err);
       setUsers([]);
     }
   };
@@ -58,7 +60,8 @@ export default function UserList({ refreshFlag }) {
   const handleDelete = async (id) => {
     if (!window.confirm('Bạn có chắc muốn xóa user này?')) return;
     try {
-      await axios.delete(`${API}/users/${id}`);
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      await axios.delete(`${API}/users/${id}`, config);
       await fetchUsers(); // Luôn lấy lại danh sách user mới nhất từ backend
     } catch (err) {
       if (err.response && err.response.status === 404) {
@@ -84,8 +87,9 @@ export default function UserList({ refreshFlag }) {
 
   const handleEditSave = async () => {
     try {
-      const id = editingUser._id;
-      await axios.put(`${API}/users/${id}`, { name: editName, email: editEmail });
+  const id = editingUser._id;
+  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  await axios.put(`${API}/users/${id}`, { name: editName, email: editEmail }, config);
       await fetchUsers(); // Luôn lấy lại danh sách user mới nhất từ backend
       setEditingUser(null);
       setEditName("");
