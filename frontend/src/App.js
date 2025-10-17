@@ -31,6 +31,7 @@ import AddUser from "./AddUser";
 import Login from './Login';
 import SignUp from './SignUp';
 import Modal from './components/Modal';
+import Profile from './Profile';
 
 function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
@@ -86,26 +87,21 @@ function App() {
           </div>
         ) : currentUser.role === 'admin' ? (
           <>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-              <div>
-                <strong>{currentUser.name}</strong> ({currentUser.email}) • <em>Admin</em>
-              </div>
-              <div>
-                <button className="btn" onClick={handleLogout}>Đăng xuất</button>
-              </div>
-            </div>
+            {/* Removed top user line for cleaner look */}
             <AddUser onAdded={handleUserAdded} />
             <UserList refreshFlag={refreshFlag} token={token} />
+            <div style={{marginTop:16, display:'flex', justifyContent:'center'}}>
+              <button className="btn small" onClick={handleLogout}>Đăng xuất</button>
+            </div>
           </>
         ) : (
-          <div style={{padding:18}}>
-            <h3>Thông tin tài khoản</h3>
-            <div><strong>Tên:</strong> {currentUser.name}</div>
-            <div><strong>Email:</strong> {currentUser.email}</div>
-            <div style={{marginTop:12}}>
-              <button className="btn" onClick={handleLogout}>Đăng xuất</button>
+          <>
+            {/* Removed top user line for cleaner look */}
+            <Profile token={token} currentUser={currentUser} setCurrentUser={setCurrentUser} />
+            <div style={{marginTop:8, padding:18, paddingTop:0, display:'flex', justifyContent:'center'}}>
+              <button className="btn small" onClick={handleLogout}>Đăng xuất</button>
             </div>
-          </div>
+          </>
         )}
 
         <Modal open={showLogin} title="Đăng nhập" onClose={() => setShowLogin(false)}>
