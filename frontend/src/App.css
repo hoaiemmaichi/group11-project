@@ -25,9 +25,10 @@ body {
 .app-container {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: transparent;
+  padding: 24px;
 }
 
 .main-card {
@@ -39,6 +40,24 @@ body {
   max-width: 400px;
   width: 100%;
 }
+
+/* Admin wide layout */
+.admin-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(60,72,88,0.15);
+  padding: 20px 20px 24px 20px;
+  width: min(1100px, 95vw);
+}
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.admin-actions { display: flex; gap: 8px; }
+.admin-content { margin-top: 8px; }
 
 .main-title {
   font-size: 2rem;
@@ -118,6 +137,18 @@ body {
   flex-direction: column;
   gap: 12px;
 }
+
+/* Table styles for admin list */
+.user-table th, .user-table td {
+  border-bottom: 1px solid #e3f2fd;
+}
+.user-table th {
+  color: #0d47a1;
+  font-weight: 700;
+  background: #f3f8ff;
+}
+.user-table td { color: #263238; }
+.user-table tr:hover td { background: #fafcff; }
 
 /* Profile styles */
 .profile-card {

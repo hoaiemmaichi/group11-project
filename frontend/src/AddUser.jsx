@@ -49,7 +49,7 @@ import Modal from "./components/Modal";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-export default function AddUser({ onAdded }) {
+export default function AddUser({ onAdded, token }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -75,7 +75,8 @@ export default function AddUser({ onAdded }) {
 
     try {
       setSubmitting(true);
-      const response = await axios.post(`${API}/users`, { name: trimmedName, email: trimmedEmail });
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+  const response = await axios.post(`${API}/users`, { name: trimmedName, email: trimmedEmail }, { headers });
       console.log('Response:', response.data);
       setName("");
       setEmail("");
@@ -84,7 +85,7 @@ export default function AddUser({ onAdded }) {
       setModalOpen(true);
     } catch (err) {
       console.error('Add user error:', err);
-      const msg = err.response?.data?.error || err.response?.data?.message || err.message;
+  const msg = err.response?.data?.error || err.response?.data?.message || err.message;
       // Bắt lỗi trùng email (MongoDB E11000)
       if (typeof msg === 'string' && msg.toLowerCase().includes('duplicate')) {
         setModalMsg('Email đã tồn tại, vui lòng dùng email khác.');

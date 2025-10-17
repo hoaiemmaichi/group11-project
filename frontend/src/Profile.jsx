@@ -4,8 +4,9 @@ import Modal from './components/Modal';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-export default function Profile({ token, onUpdated, currentUser, setCurrentUser }) {
+export default function Profile({ token, onUpdated, currentUser, setCurrentUser, onDeleted }) {
   const [form, setForm] = useState({ name: currentUser?.name || '', email: currentUser?.email || '' });
+  const [profileId, setProfileId] = useState(currentUser?.id || currentUser?._id || '');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [openEdit, setOpenEdit] = useState(false);
@@ -17,7 +18,8 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
         const res = await axios.get(`${API}/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const { name, email } = res.data || {};
+        const { id, name, email } = res.data || {};
+        if (id) setProfileId(id);
         setForm({ name: name || '', email: email || '' });
       } catch (err) {
         const serverMsg = err.response?.data?.message || err.message;
@@ -30,6 +32,37 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelfDelete = async () => {
+    if (!profileId) {
+      setMessage('Không xác định được tài khoản để xóa');
+      return;
+    }
+    const confirm1 = window.confirm('Bạn có chắc chắn muốn xóa tài khoản của chính mình? Hành động này không thể hoàn tác.');
+    if (!confirm1) return;
+    try {
+      setLoading(true);
+      await axios.delete(`${API}/users/${profileId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMessage('Đã xóa tài khoản thành công');
+      // Gọi callback để App xử lý logout và chuyển màn hình
+      if (onDeleted) onDeleted();
+      else {
+        // fallback: tự dọn localStorage
+        try {
+          localStorage.removeItem('token');
+          localStorage.removeItem('currentUser');
+        } catch (_) {}
+        window.location.reload();
+      }
+    } catch (err) {
+      const serverMsg = err.response?.data?.message || err.message;
+      setMessage(serverMsg || 'Xóa tài khoản thất bại');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -67,6 +100,7 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
           </div>
           <div className="profile-actions">
             <button className="btn small" onClick={() => { setOpenEdit(true); setMessage(''); }}>Sửa</button>
+            <button className="btn small" style={{marginLeft:8, background:'#d32f2f'}} onClick={handleSelfDelete} disabled={loading}>Xóa tài khoản</button>
           </div>
         </div>
 
