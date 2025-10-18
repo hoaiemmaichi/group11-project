@@ -24,7 +24,7 @@ exports.signup = async (req, res) => {
     await user.save();
 
     // không trả password (kể cả đã băm)
-    return res.status(201).json({ message: 'Tạo tài khoản thành công', user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  return res.status(201).json({ message: 'Tạo tài khoản thành công', user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl || null } });
   } catch (err) {
     console.error('[auth.signup] error:', err);
     return res.status(500).json({ message: 'Lỗi máy chủ, vui lòng thử lại sau' });
@@ -78,8 +78,8 @@ exports.login = async (req, res) => {
 
   const role = user.role || 'user';
   const token = jwt.sign({ sub: user._id, email: user.email, role }, JWT_SECRET, { expiresIn: '1h' });
-  // trả về thông tin user (không có password) và token
-  return res.json({ token, user: { id: user._id, name: user.name, email: user.email, role } });
+  // trả về thông tin user (không có password) kèm avatarUrl và token
+  return res.json({ token, user: { id: user._id, name: user.name, email: user.email, role, avatarUrl: user.avatarUrl || null } });
   } catch (err) {
     console.error('[auth.login] error:', err);
     return res.status(500).json({ message: 'Lỗi máy chủ, vui lòng thử lại sau' });

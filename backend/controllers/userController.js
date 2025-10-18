@@ -78,9 +78,9 @@ exports.getProfile = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: 'Chưa xác thực' });
-    const user = await User.findById(userId).select('-password');
+  const user = await User.findById(userId).select('-password');
     if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-    return res.json({ id: user._id, name: user.name, email: user.email, role: user.role });
+  return res.json({ id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl || null });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -98,9 +98,9 @@ exports.updateProfile = async (req, res) => {
     if (Object.keys(payload).length === 0) {
       return res.status(400).json({ message: 'Không có dữ liệu để cập nhật' });
     }
-    const updated = await User.findByIdAndUpdate(userId, payload, { new: true }).select('-password');
+  const updated = await User.findByIdAndUpdate(userId, payload, { new: true }).select('-password');
     if (!updated) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-    return res.json({ id: updated._id, name: updated.name, email: updated.email, role: updated.role });
+  return res.json({ id: updated._id, name: updated.name, email: updated.email, role: updated.role, avatarUrl: updated.avatarUrl || null });
   } catch (error) {
     // Email trùng key unique
     if (error && error.code === 11000) {
