@@ -32,13 +32,17 @@ import Login from './Login';
 import SignUp from './SignUp';
 import Modal from './components/Modal';
 import Profile from './Profile';
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';
 
 function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [showLogin, setShowLogin] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
-  const [showAddUser, setShowAddUser] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [showReset, setShowReset] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleUserAdded = () => {
     setRefreshFlag(prev => prev + 1);
@@ -56,11 +60,11 @@ function App() {
     localStorage.setItem('token', newToken);
     if (user) {
       setCurrentUser(user);
-      try { localStorage.setItem('currentUser', JSON.stringify(user)); } catch (_) {}
+      localStorage.setItem('currentUser', JSON.stringify(user));
     }
     setShowLogin(false);
     setShowSignUp(false);
-}
+  };
 
   const handleLogout = () => {
     setToken(null);
@@ -71,66 +75,72 @@ function App() {
 
   return (
     <div className="app-container">
-      {currentUser && currentUser.role === 'admin' ? (
-        <div className="admin-card">
-          <div className="admin-header">
-            <h1 className="main-title" style={{marginBottom:0, textAlign:'left'}}>Quản lý người dùng</h1>
-            <div style={{display:'flex', alignItems:'center', gap:12}}>
-              <div style={{color:'#455a64', fontWeight:600}}>
-                {currentUser?.name || currentUser?.email} — {currentUser?.role === 'admin' ? 'Admin' : 'User'}
-              </div>
-              <div className="admin-actions">
-              <button className="btn small" onClick={() => setShowAddUser(true)}>Thêm người dùng</button>
-              <button className="btn small" onClick={handleLogout}>Đăng xuất</button>
+      <div className={`main-card${currentUser?.role === 'admin' ? ' admin' : ''}`}>
+        <h1 className="main-title">Quản lý người dùng</h1>
+        {/* auth buttons centered in card when not logged in */}
+        {!currentUser && (
+          <div className="auth-actions">
+            <button className="btn small" onClick={() => { setShowLogin(true); setShowSignUp(false); }}>Đăng nhập</button>
+            <button className="btn small" onClick={() => { setShowSignUp(true); setShowLogin(false); }}>Đăng ký</button>
+          </div>
+        )}
+        {/* If not logged in: show intro + prompt to login/signup */}
+        {!currentUser ? (
+          <div style={{padding:18, textAlign:'center'}}>
+            <p>Vui lòng đăng nhập để tiếp tục.</p>
+          </div>
+        ) : currentUser.role === 'admin' ? (
+          <>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+              <div style={{color:'#607d8b'}}> {currentUser.name} — <strong>Admin</strong></div>
+              <div style={{display:'flex',gap:8}}>
+                <AddUser onAdded={handleUserAdded} token={token} />
+                <button className="btn small" onClick={() => setShowLogoutConfirm(true)}>Đăng xuất</button>
               </div>
             </div>
-          </div>
-          <div className="admin-content">
             <UserList refreshFlag={refreshFlag} token={token} />
+          </>
+        ) : (
+          <>
+            {/* Removed top user line for cleaner look */}
+            <Profile token={token} currentUser={currentUser} setCurrentUser={setCurrentUser} />
+            <div style={{marginTop:8, padding:18, paddingTop:0, display:'flex', justifyContent:'center'}}>
+              <button className="btn small" onClick={() => setShowLogoutConfirm(true)}>Đăng xuất</button>
+            </div>
+          </>
+        )}
+
+        <Modal open={showLogin} title="Đăng nhập" onClose={() => setShowLogin(false)}>
+          <Login
+            onLogin={handleLogin}
+            onForgot={() => { setShowLogin(false); setShowForgot(true); }}
+            onReset={() => { setShowLogin(false); setShowReset(true); }}
+          />
+        </Modal>
+
+        <Modal open={showSignUp} title="Đăng ký" onClose={() => setShowSignUp(false)}>
+          <SignUp onSignedUp={() => { setShowSignUp(false); setShowLogin(true); }} />
+        </Modal>
+
+        <Modal open={showForgot} title="Quên mật khẩu" onClose={() => setShowForgot(false)}>
+          <ForgotPassword />
+        </Modal>
+
+        <Modal open={showReset} title="Đổi mật khẩu bằng token" onClose={() => setShowReset(false)}>
+          <ResetPassword />
+        </Modal>
+
+        {/* Xác nhận đăng xuất */}
+        <Modal open={showLogoutConfirm} title="Xác nhận" onClose={() => setShowLogoutConfirm(false)}>
+          <div style={{marginBottom:12}}>Bạn có chắc chắn muốn đăng xuất?</div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn small" onClick={() => setShowLogoutConfirm(false)}>Hủy</button>
+            <button className="btn small danger" onClick={() => { setShowLogoutConfirm(false); handleLogout(); }}>Đăng xuất</button>
           </div>
-        </div>
-      ) : (
-        <div className="main-card">
-          <h1 className="main-title">Quản lý người dùng</h1>
-          {!currentUser && (
-            <div className="auth-actions">
-              <button className="btn small" onClick={() => { setShowLogin(true); setShowSignUp(false); }}>
-                Đăng nhập
-              </button>
-              <button className="btn small" onClick={() => { setShowSignUp(true); setShowLogin(false); }}>
-                Đăng ký
-              </button>
-            </div>
-          )}
-
-          {!currentUser ? (
-            <div style={{padding:18, textAlign:'center'}}>
-              <p>Vui lòng đăng nhập để tiếp tục.</p>
-            </div>
-          ) : (
-            <>
-              <Profile token={token} currentUser={currentUser} setCurrentUser={setCurrentUser} onDeleted={handleLogout} />
-              <div style={{marginTop:8, padding:18, paddingTop:0, display:'flex', justifyContent:'center'}}>
-                <button className="btn small" onClick={handleLogout}>Đăng xuất</button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Modals */}
-      <Modal open={showLogin} title="Đăng nhập" onClose={() => setShowLogin(false)}>
-        <Login onLogin={handleLogin} />
-      </Modal>
-
-      <Modal open={showSignUp} title="Đăng ký" onClose={() => setShowSignUp(false)}>
-        <SignUp onSignedUp={() => { setShowSignUp(false); setShowLogin(true); }} />
-      </Modal>
-
-      <Modal open={showAddUser} title="Thêm người dùng" onClose={() => setShowAddUser(false)}>
-        <AddUser onAdded={() => { setShowAddUser(false); handleUserAdded(); }} token={token} />
-      </Modal>
+        </Modal>
+      </div>
     </div>
   );
 }
+
 export default App;

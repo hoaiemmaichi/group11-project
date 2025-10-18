@@ -53,7 +53,8 @@ export default function AddUser({ onAdded, token }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false); // modal tạo user
+  const [noticeOpen, setNoticeOpen] = useState(false); // modal thông báo
   const [modalMsg, setModalMsg] = useState("");
 
   const handleSubmit = async (e) => {
@@ -75,24 +76,24 @@ export default function AddUser({ onAdded, token }) {
 
     try {
       setSubmitting(true);
-  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-  const response = await axios.post(`${API}/users`, { name: trimmedName, email: trimmedEmail }, { headers });
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      const response = await axios.post(`${API}/users`, { name: trimmedName, email: trimmedEmail }, config);
       console.log('Response:', response.data);
       setName("");
       setEmail("");
       if (onAdded) onAdded(); // báo parent refresh danh sách
       setModalMsg('Thêm user thành công!');
-      setModalOpen(true);
+      setNoticeOpen(true);
     } catch (err) {
       console.error('Add user error:', err);
-  const msg = err.response?.data?.error || err.response?.data?.message || err.message;
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message;
       // Bắt lỗi trùng email (MongoDB E11000)
       if (typeof msg === 'string' && msg.toLowerCase().includes('duplicate')) {
         setModalMsg('Email đã tồn tại, vui lòng dùng email khác.');
-        setModalOpen(true);
+        setNoticeOpen(true);
       } else {
         setModalMsg(`Thêm thất bại: ${msg}`);
-        setModalOpen(true);
+        setNoticeOpen(true);
       }
     } finally {
       setSubmitting(false);
@@ -100,17 +101,25 @@ export default function AddUser({ onAdded, token }) {
   };
 
   return (
-    <form className="user-form" onSubmit={handleSubmit}>
-      <div className="form-group">
-        <input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="Tên" required />
-      </div>
-      <div className="form-group">
-        <input className="input" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" required />
-      </div>
-      <button className="btn" type="submit" disabled={submitting}>
-        {submitting ? 'Đang thêm...' : 'Thêm người dùng'}
-      </button>
-      <Modal open={modalOpen} title="Thông báo" message={modalMsg} onClose={() => setModalOpen(false)} />
-    </form>
+    <>
+      <button className="btn small" type="button" onClick={() => setModalOpen(true)}>Thêm người dùng</button>
+
+      <Modal open={modalOpen} title="Thêm người dùng" onClose={() => setModalOpen(false)}>
+        <form className="user-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên" required />
+          </div>
+          <div className="form-group">
+            <input className="input" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Gmail" type="email" required />
+          </div>
+          <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
+            <button type="button" className="btn small" onClick={() => setModalOpen(false)}>Hủy</button>
+            <button className="btn small" type="submit" disabled={submitting}>{submitting ? 'Đang thêm...' : 'Thêm'}</button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={noticeOpen} title="Thông báo" message={modalMsg} onClose={() => setNoticeOpen(false)} />
+    </>
   );
 }
