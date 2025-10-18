@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const { multerSingle, uploadAvatar, uploadStatus } = require('../controllers/uploadController');
 
 // POST /upload-avatar  (form-data: key=avatar)
+// POST /upload-avatar  (form-data: key=avatar)
 router.post('/upload-avatar', auth, multerSingle, uploadAvatar);
 router.get('/upload-status', uploadStatus);
 
