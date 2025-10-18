@@ -1,17 +1,24 @@
+
 # GROUP 11
+# GROUP 11
+
+# group11-project
+8e4094a (Thêm file server.js và User.js)
+
+
 
 Thông tin nhóm
 - Tên nhóm: Group 11 - Project
 - Thành viên:
-  1. Lê Quốc Khanh – Backend Developer (Node.js + Express)
-  2. Lê Nguyễn Thái Bảo – Frontend Developer (React)
+  1. Lê Quốc Khanh – Frontend Developer (React)
+  2. Lê Nguyễn Thái Bảo – Backend Developer (Node.js + Express)
   3. Mai Chí Hoài Em – Database Manager (MongoDB)
 
 ---
 
 Vai trò của từng thành viên
 
-- Lê Quốc Khanh – Backend Developer
+- Lê Nguyễn Thái Bảo – Backend Developer
 - Thiết lập Node.js và framework Express.
 - Tạo API phục vụ frontend.
 - Xử lý request – response, xác thực, routing, và logic nghiệp vụ.
@@ -19,7 +26,7 @@ Vai trò của từng thành viên
 
 ---
 
-- Lê Nguyễn Thái Bảo – Frontend Developer
+- Lê Quốc Khanh – Frontend Developer
 - Thiết kế giao diện với ReactJS.
 - Xây dựng các component UI và bố cục trang.
 - Gọi API từ backend để hiển thị dữ liệu.
@@ -45,3 +52,6 @@ Công nghệ sử dụng
 
 ## Liên kết
 - Repository GitHub: [https://github.com/hoaiemmaichi/group11-project.git](https://github.com/hoaiemmaichi/group11-project.git)
+
+ 7ffea2a (Cập nhật nội dung README.md)
+
