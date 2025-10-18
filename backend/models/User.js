@@ -20,7 +20,13 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   // Store hashed password; exclude from queries by default
   password: { type: String, required: false, select: false },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' }
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  // Password reset
+  resetPasswordTokenHash: { type: String, select: false },
+  resetPasswordExpiresAt: { type: Date },
+  // Avatar (Cloudinary)
+  avatarUrl: { type: String },
+  avatarPublicId: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
