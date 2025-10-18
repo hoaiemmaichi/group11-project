@@ -36,6 +36,7 @@ exports.createUser = async (req, res) => {
 }
 
 
+
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
@@ -45,6 +46,9 @@ let memoryUsers = [];
 // GET: lấy danh sách user (ưu tiên từ MongoDB)
 exports.getUsers = async (req, res) => {
   try {
+
+    // explicitly exclude password field
+    const users = await User.find().select('-password');
     const users = await User.find();
     return res.json(users);
   } catch (error) {
@@ -109,5 +113,42 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+
+// GET /profile: lấy thông tin cá nhân của user từ JWT
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: 'Chưa xác thực' });
+  const user = await User.findById(userId).select('-password');
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+  return res.json({ id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl || null });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// PUT /profile: cập nhật thông tin cá nhân (name, email)
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: 'Chưa xác thực' });
+    const { name, email } = req.body || {};
+    const payload = {};
+    if (typeof name === 'string' && name.trim()) payload.name = name.trim();
+    if (typeof email === 'string' && email.trim()) payload.email = email.trim();
+    if (Object.keys(payload).length === 0) {
+      return res.status(400).json({ message: 'Không có dữ liệu để cập nhật' });
+    }
+  const updated = await User.findByIdAndUpdate(userId, payload, { new: true }).select('-password');
+    if (!updated) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+  return res.json({ id: updated._id, name: updated.name, email: updated.email, role: updated.role, avatarUrl: updated.avatarUrl || null });
+  } catch (error) {
+    // Email trùng key unique
+    if (error && error.code === 11000) {
+      return res.status(400).json({ message: 'Email đã tồn tại' });
+    }
+    return res.status(400).json({ message: error.message });
+  }
+};
 
 
