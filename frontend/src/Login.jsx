@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, onForgot, onReset }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,6 +20,9 @@ export default function Login({ onLogin }) {
       const user = res.data.user;
       if (token) {
         localStorage.setItem('token', token);
+        if (user) {
+          try { localStorage.setItem('currentUser', JSON.stringify(user)); } catch (_) {}
+        }
         if (onLogin) onLogin(token, user);
         setMessage('Đăng nhập thành công');
       } else {
@@ -41,6 +44,10 @@ export default function Login({ onLogin }) {
         <input className="input" placeholder="Mật khẩu" type="password" value={password} onChange={e=>setPassword(e.target.value)} required />
       </div>
       <button className="btn" type="submit" disabled={loading}>{loading ? 'Đang...' : 'Đăng nhập'}</button>
+      <div style={{display:'flex',justifyContent:'space-between',marginTop:8}}>
+        <button type="button" className="btn link" onClick={onForgot}>Quên mật khẩu?</button>
+        <button type="button" className="btn link" onClick={onReset}>Đổi mật khẩu bằng token</button>
+      </div>
       {message && <div style={{marginTop:8,color:'#c62828'}}>{message}</div>}
     </form>
   );

@@ -35,6 +35,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Modal from './components/Modal';
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
@@ -43,6 +44,7 @@ export default function UserList({ refreshFlag, token }) {
   const [editingUser, setEditingUser] = useState(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
 
   useEffect(() => { fetchUsers(); }, [refreshFlag]);
 
@@ -57,12 +59,11 @@ export default function UserList({ refreshFlag, token }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa user này?')) return;
+  const performDelete = async (id) => {
     try {
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       await axios.delete(`${API}/users/${id}`, config);
-      await fetchUsers(); // Luôn lấy lại danh sách user mới nhất từ backend
+      await fetchUsers();
     } catch (err) {
       if (err.response && err.response.status === 404) {
         alert('Người dùng này đã bị xóa hoặc không tồn tại!');
@@ -110,39 +111,66 @@ export default function UserList({ refreshFlag, token }) {
   return (
     <div className="user-list-section">
       <h2 className="section-title">Danh sách người dùng</h2>
-      <div className="user-list">
-        {users.length === 0 ? (
-          <div className="empty">Chưa có người dùng nào.</div>
-        ) : (
-          users.map(u => (
-            <div className="user-card" key={u._id}>
-              {editingUser && u._id === editingUser._id ? (
-                <>
-                  <div className="user-info" style={{marginRight:16}}>
-                    <input className="input" value={editName} onChange={e => setEditName(e.target.value)} style={{marginBottom:4}} />
-                    <input className="input" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
-                  </div>
-                  <div className="user-actions">
-                    <button className="btn edit" onClick={handleEditSave}>Lưu</button>
-                    <button className="btn cancel" onClick={handleEditCancel}>Hủy</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="user-info" style={{marginRight:16}}>
-                    <div className="user-name">{u.name}</div>
-                    <div className="user-email">{u.email}</div>
-                  </div>
-                  <div className="user-actions">
-                    <button className="btn edit" onClick={() => handleEdit(u)}>Sửa</button>
-                    <button className="btn delete" onClick={() => handleDelete(u._id)}>Xóa</button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))
-        )}
-      </div>
+      {users.length === 0 ? (
+        <div className="empty">Chưa có người dùng nào.</div>
+      ) : (
+        <div className="table-wrapper">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Họ và tên</th>
+                <th>Email</th>
+                <th>Phân quyền</th>
+                <th style={{width:140, textAlign:'right'}}>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u, idx) => (
+                (
+                  <tr key={u._id}>
+                    <td>{idx + 1}</td>
+                    <td className="cell-name">{u.name}</td>
+                    <td className="cell-email">{u.email}</td>
+                    <td>
+                      <span className={`role-chip ${u.role === 'admin' ? 'admin' : 'user'}`}>{u.role || 'user'}</span>
+                    </td>
+                    <td className="cell-actions">
+                      <button className="btn small" onClick={() => handleEdit(u)}>Sửa</button>
+                      <button className="btn small" onClick={() => setConfirmDeleteUser(u)}>Xóa</button>
+                    </td>
+                  </tr>
+                )
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal sửa người dùng */}
+      <Modal open={!!editingUser} title="Chỉnh sửa người dùng" onClose={handleEditCancel}>
+        <div className="user-form">
+          <div className="form-group">
+            <input className="input" placeholder="Tên" value={editName} onChange={e => setEditName(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <input className="input" placeholder="Email" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn small" onClick={handleEditCancel}>Hủy</button>
+            <button className="btn small" onClick={handleEditSave}>Lưu</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal xác nhận xóa */}
+      <Modal open={!!confirmDeleteUser} title="Xác nhận" onClose={() => setConfirmDeleteUser(null)}>
+        <div style={{marginBottom:12}}>Bạn có chắc chắn muốn xóa người dùng {confirmDeleteUser?.name}?</div>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+          <button className="btn small" onClick={() => setConfirmDeleteUser(null)}>Hủy</button>
+          <button className="btn small danger" onClick={async () => { const id = confirmDeleteUser._id; setConfirmDeleteUser(null); await performDelete(id); }}>Có</button>
+        </div>
+      </Modal>
     </div>
   );
 }

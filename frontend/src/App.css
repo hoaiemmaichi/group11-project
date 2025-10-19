@@ -36,9 +36,10 @@ body {
   box-shadow: 0 6px 32px 0 rgba(60,72,88,0.15);
   padding: 40px 32px 32px 32px;
   min-width: 350px;
-  max-width: 400px;
+  max-width: 720px; /* thu hẹp chiều ngang để cân xứng hơn */
   width: 100%;
 }
+.main-card.admin { max-width: 980px; }
 
 .main-title {
   font-size: 2rem;
@@ -54,6 +55,11 @@ body {
   gap: 16px;
   margin-bottom: 32px;
 }
+.user-form.horizontal { flex-direction: row; align-items: center; gap: 12px; }
+.user-form .inline { margin: 0; }
+.user-form.horizontal .inline { flex: 1; }
+.user-form.horizontal .input { min-width: 200px; width: 100%; }
+.form-actions.inline { display: flex; align-items: center; }
 
 .form-group {
   display: flex;
@@ -88,6 +94,10 @@ body {
   background: linear-gradient(90deg, #1565c0 0%, #1976d2 100%);
 }
 
+/* danger variant */
+.btn.danger { background: linear-gradient(90deg, #d32f2f 0%, #ef5350 100%); }
+.btn.danger:hover { background: linear-gradient(90deg, #b71c1c 0%, #d32f2f 100%); }
+
 /* small button variant used for inline action buttons */
 .btn.small {
   padding: 6px 14px;
@@ -95,6 +105,10 @@ body {
   border-radius: 6px;
   font-weight: 500;
 }
+
+/* Link-style button for inline actions (blue text, no box, smaller) */
+.btn.link { background: transparent; color: #1565c0; padding: 0; border: none; font-size: 12px; cursor: pointer; }
+.btn.link:hover { text-decoration: underline; }
 
 /* Centered auth button container */
 .auth-actions {
@@ -118,6 +132,27 @@ body {
   flex-direction: column;
   gap: 12px;
 }
+/* Table layout for admin user list */
+.table-wrapper { overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+.table thead { background: #e3f2fd; }
+.table th, .table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #eceff1;
+}
+.table th { color: #0d47a1; font-weight: 700; font-size: 0.95rem; }
+.table tbody tr:hover { background: #f8fbff; }
+.cell-actions { text-align: right; white-space: nowrap; display: flex; justify-content: flex-end; gap: 8px; }
+.cell-name { font-weight: 600; color: #263238; }
+.cell-email { color: #607d8b; }
 
 /* Profile styles */
 .profile-card {
@@ -180,6 +215,20 @@ body {
   color: #607d8b;
   font-size: 0.97rem;
   margin-top: 2px;
+}
+.role-chip {
+  text-transform: capitalize;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #cfd8dc;
+  color: #455a64;
+  background: #eceff1;
+}
+.role-chip.admin {
+  border-color: #bbdefb;
+  color: #0d47a1;
+  background: #e3f2fd;
 }
 .empty {
   color: #b0bec5;
