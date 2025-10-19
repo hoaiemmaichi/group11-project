@@ -14,6 +14,6 @@ router.delete('/users/:id', auth, adminOrSelfByParamId('id'), userController.del
 router.get('/profile', auth, userController.getProfile);
 router.put('/profile', auth, userController.updateProfile);
 
-module.exports = router;
 
+module.exports = router;
 
