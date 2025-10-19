@@ -49,7 +49,6 @@ exports.getUsers = async (req, res) => {
 
     // explicitly exclude password field
     const users = await User.find().select('-password');
-    const users = await User.find();
     return res.json(users);
   } catch (error) {
     return res.status(500).json({ message: error.message });

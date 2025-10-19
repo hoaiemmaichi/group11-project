@@ -1,78 +1,10 @@
 
-
-// // const express = require('express');
-// // const dotenv = require('dotenv');
-// // const userRoutes = require('./routes/user');
-
-// // dotenv.config();
-// // const app = express();
-
-// // app.use(express.json());
-// // app.use('/', userRoutes);
-
-// // const PORT = process.env.PORT || 3000;
-// // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-// // server.js
-// const express = require('express');
-// const dotenv = require('dotenv');
-// const mongoose = require('mongoose');
-// const cors = require('cors');
-// const userRoutes = require('./routes/user');
-// const authRoutes = require('./routes/auth');
-// const express = require('express');
-// const dotenv = require('dotenv');
-// const userRoutes = require('./routes/user');
-
-// dotenv.config();
-// const app = express();
-
-// // ✅ Enable CORS cho frontend
-// app.use(cors({
-//   origin: ['http://localhost:3001', 'http://localhost:3000'], // Support cả 2 port
-//   credentials: true
-// }));
-
-// app.use(express.json());
-
-// // 🔗 Kết nối MongoDB Atlas
-// mongoose.connect('mongodb+srv://hoaiem:hoaiem1234@groupdb.14hxmuu.mongodb.net/groupDB?retryWrites=true&w=majority')
-//   .then(() => console.log('✅ MongoDB connected'))
-//   .catch(err => console.error('❌ Connection error:', err));
-
-// // Dùng routes/user.js cho toàn bộ CRUD
-// app.use('/', userRoutes);
-// // Mount auth
-// app.use('/auth', authRoutes);
-
-// // 🚀 Khởi chạy server
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
-// app.use(express.json());
-// app.use('/', userRoutes);
-
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-// server.js
-const express = require('express');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const path = require('path');
 const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
 const uploadRoutes = require('./routes/upload');
 
 // Nạp biến môi trường từ file .env trong thư mục backend
 dotenv.config({ path: __dirname + '/.env' });
-
-const userRoutes = require('./routes/user');
-const User = require('./models/User'); // ✅ import model đúng đường dẫn
-
-dotenv.config();
 
 const app = express();
 
@@ -138,6 +70,7 @@ app.all('/echo', (req, res) => {
   res.json({ ok: true, method: req.method, url: req.originalUrl, headers: req.headers, body: req.body || null });
 });
 
+
 // 🚀 Khởi chạy server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
@@ -153,50 +86,3 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({ message: 'Không tìm thấy endpoint', method: req.method, path: req.originalUrl });
 });
-app.use(express.json());
-
-// 🔗 Kết nối MongoDB Atlas
-mongoose.connect('mongodb+srv://hoaiem:hoaiem1234@groupdb.14hxmuu.mongodb.net/groupDB?retryWrites=true&w=majority')
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ Connection error:', err));
-
-// 📥 POST: thêm user mới
-app.post('/users', async (req, res) => {
-  try {
-    const user = new User(req.body);
-    await user.save();
-    res.status(201).send(user);
-  } catch (err) {
-    res.status(400).send({ error: err.message });
-  }
-});
-
-// 📤 GET: lấy danh sách user
-app.get('/users', async (req, res) => {
-  try {
-    const users = await User.find();
-    res.status(200).send(users);
-  } catch (err) {
-    res.status(500).send({ error: err.message });
-  }
-});
-
-// Hoặc nếu bạn đã có routes/user.js riêng thì có thể dùng:
-// app.use('/', userRoutes);
-
-
-
-app.use(express.json());
-
-// 🔗 Kết nối MongoDB Atlas
-mongoose.connect('mongodb+srv://hoaiem:hoaiem1234@groupdb.14hxmuu.mongodb.net/groupDB?retryWrites=true&w=majority')
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ Connection error:', err));
-
-// Dùng routes/user.js cho toàn bộ CRUD
-app.use('/', userRoutes);
-
-
-// 🚀 Khởi chạy server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
