@@ -1,11 +1,15 @@
 
+const express = require('express');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const path = require('path');
 const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
 const uploadRoutes = require('./routes/upload');
 
 // Nạp biến môi trường từ file .env trong thư mục backend
 dotenv.config({ path: __dirname + '/.env' });
-
 const app = express();
 
 // ✅ Enable CORS cho frontend
@@ -69,7 +73,6 @@ app.post('/ping', (req, res) => {
 app.all('/echo', (req, res) => {
   res.json({ ok: true, method: req.method, url: req.originalUrl, headers: req.headers, body: req.body || null });
 });
-
 
 // 🚀 Khởi chạy server
 const PORT = process.env.PORT || 3000;
