@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
-// Fallback in-memory store (used only if not found in MongoDB or id isn't ObjectId)
+// Mảng lưu tạm (chỉ dùng khi không tìm thấy trong MongoDB hoặc id không phải ObjectId)
 let memoryUsers = [];
 
 // GET: lấy danh sách user (ưu tiên từ MongoDB)
@@ -45,7 +45,7 @@ exports.updateUser = async (req, res) => {
       return res.json(memoryUsers[index]);
     }
 
-    return res.status(404).json({ message: 'User not found' });
+  return res.status(404).json({ message: 'Không tìm thấy người dùng' });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -58,15 +58,15 @@ exports.deleteUser = async (req, res) => {
     // Nếu id hợp lệ theo ObjectId, thử xóa MongoDB trước
     if (mongoose.Types.ObjectId.isValid(id)) {
       const deleted = await User.findByIdAndDelete(id);
-      if (deleted) return res.json({ message: 'User deleted' });
+  if (deleted) return res.json({ message: 'Xóa người dùng thành công' });
     }
 
     // Fallback: xóa trong mảng tạm theo trường id
     const before = memoryUsers.length;
     memoryUsers = memoryUsers.filter(u => String(u.id) !== String(id));
-    if (memoryUsers.length !== before) return res.json({ message: 'User deleted' });
+  if (memoryUsers.length !== before) return res.json({ message: 'Xóa người dùng thành công' });
 
-    return res.status(404).json({ message: 'User not found' });
+  return res.status(404).json({ message: 'Không tìm thấy người dùng' });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }

@@ -1,4 +1,51 @@
 
+// // Ví dụ nhanh: khởi tạo server Express (chỉ để tham khảo)
+// // const express = require('express');
+// // const dotenv = require('dotenv');
+// // const userRoutes = require('./routes/user');
+// // dotenv.config();
+// // const app = express();
+// // app.use(express.json());
+// // app.use('/', userRoutes);
+// // const PORT = process.env.PORT || 3000;
+// // app.listen(PORT, () => console.log(`Server đang chạy trên port ${PORT}`));
+
+// // server.js
+// const express = require('express');
+// const dotenv = require('dotenv');
+// const mongoose = require('mongoose');
+// const cors = require('cors');
+// const userRoutes = require('./routes/user');
+// const authRoutes = require('./routes/auth');
+
+// dotenv.config();
+// const app = express();
+
+// // ✅ Enable CORS cho frontend
+// app.use(cors({
+//   origin: ['http://localhost:3001', 'http://localhost:3000'], // Support cả 2 port
+//   credentials: true
+// }));
+
+// app.use(express.json());
+
+// // 🔗 Kết nối MongoDB Atlas
+// mongoose.connect('mongodb+srv://hoaiem:hoaiem1234@groupdb.14hxmuu.mongodb.net/groupDB?retryWrites=true&w=majority')
+//   .then(() => console.log('✅ MongoDB connected'))
+//   .catch(err => console.error('❌ Connection error:', err));
+
+// // Dùng routes/user.js cho toàn bộ CRUD
+// app.use('/', userRoutes);
+// // Mount auth
+// app.use('/auth', authRoutes);
+
+// // 🚀 Khởi chạy server
+// const PORT = process.env.PORT || 3000;
+// app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+
+
+// server.js
 const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
@@ -18,9 +65,58 @@ app.use(cors({
   credentials: true
 }));
 
-// Log đơn giản mọi request để dễ theo dõi trên console (đặt trước body parser)
+// Màu sắc cho console logging
+const colors = {
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  dim: "\x1b[2m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  magenta: "\x1b[35m",
+  cyan: "\x1b[36m",
+};
+
+// Log chi tiết request/response với màu sắc
 app.use((req, res, next) => {
-  console.log(`[req] ${req.method} ${req.originalUrl}`);
+  const start = Date.now();
+  const timestamp = new Date().toLocaleTimeString();
+  
+  // Log request
+  console.log('\n' + '─'.repeat(80));
+  console.log(`${colors.dim}[${timestamp}]${colors.reset} ${colors.bright}${colors.yellow}${req.method}${colors.reset} ${req.originalUrl}`);
+  
+  if (Object.keys(req.body || {}).length > 0) {
+    console.log(`${colors.dim}Body:${colors.reset}`, JSON.stringify(req.body, null, 2));
+  }
+
+  // Lưu hàm end gốc để wrap
+  const originalEnd = res.end;
+  res.end = function(chunk, encoding) {
+    // Tính thời gian xử lý
+    const duration = Date.now() - start;
+    
+    // Log response
+    const status = res.statusCode;
+    const statusColor = status >= 500 ? colors.red : status >= 400 ? colors.yellow : status >= 300 ? colors.cyan : colors.green;
+    
+    console.log(`${colors.dim}[${timestamp}]${colors.reset} ${statusColor}${status}${colors.reset} ${colors.dim}(${duration}ms)${colors.reset}`);
+    
+    if (chunk) {
+      let body;
+      try {
+        body = JSON.parse(chunk);
+        if (body.token) body.token = body.token.substring(0, 15) + '...';
+        if (body.refreshToken) body.refreshToken = body.refreshToken.substring(0, 15) + '...';
+        console.log(`${colors.dim}Response:${colors.reset}`, JSON.stringify(body, null, 2));
+      } catch (e) {}
+    }
+    console.log('─'.repeat(80));
+
+    originalEnd.apply(res, arguments);
+  };
+
   next();
 });
 
@@ -32,7 +128,7 @@ app.get('/', (req, res) => {
 // Body parser JSON sau khi đã có các route chẩn đoán
 app.use(express.json());
 
-// Static serving for local uploads fallback
+// Phục vụ tệp tĩnh cho thư mục uploads (dùng khi fallback lưu file local)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 🔗 Kết nối MongoDB
@@ -76,7 +172,7 @@ app.all('/echo', (req, res) => {
 
 // 🚀 Khởi chạy server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`));
 
 // Global error handler — trả về JSON, tránh gửi HTML stacktrace cho client
 app.use((err, req, res, next) => {
