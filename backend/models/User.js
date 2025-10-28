@@ -14,7 +14,7 @@
 
 const mongoose = require('mongoose');
 
-// User schema with auth-compatible fields
+// Schema User với các trường phục vụ xác thực
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -27,6 +27,15 @@ const userSchema = new mongoose.Schema({
   // Avatar (Cloudinary)
   avatarUrl: { type: String },
   avatarPublicId: { type: String }
+  ,
+  // Refresh tokens (store hashed tokens so we can revoke/rotate)
+  // Danh sách refresh token đã hash để có thể thu hồi/rotate
+  refreshTokens: [
+    {
+      tokenHash: { type: String, select: false },
+      expiresAt: { type: Date }
+    }
+  ]
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
