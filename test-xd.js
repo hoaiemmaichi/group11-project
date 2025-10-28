@@ -1,2 +1,6 @@
+
 console.log('File này được sửa bởi thành viên Backend');
-hihihi
+
+console.log('File này được sửa bởi thành viên frontend');
+console.log('File này được sửa bởi thành viên Database');
+
