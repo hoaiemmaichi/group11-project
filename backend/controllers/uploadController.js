@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const User = require('../models/User');
 
-// Expect CLOUDINARY_URL or individual CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in env
-// Configure conditionally so CLOUDINARY_URL works if provided
+// Kỳ vọng biến môi trường CLOUDINARY_URL hoặc cụ thể CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+// Cấu hình có điều kiện để CLOUDINARY_URL có thể được sử dụng nếu được cung cấp
 (() => {
   const hasSeparate = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
   try {
@@ -63,7 +63,7 @@ async function saveBufferToLocal(buffer, originalName, mime) {
   return { filename, filePath, relPath: `uploads/avatars/${filename}` };
 }
 
-// Middleware chain: auth -> upload.single('avatar') -> handler
+// Chuỗi middleware: auth -> upload.single('avatar') -> handler
 exports.multerSingle = upload.single('avatar');
 
 // GET /upload-status — quick diagnostics

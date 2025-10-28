@@ -29,12 +29,12 @@ async function createMailTransporter() {
       await transporter.verify();
       return { transporter, from: smtpUser, mode: 'smtp' };
     } catch (err) {
-      console.error('[email] SMTP verify failed:', err);
+  console.error('[email] Kiểm tra SMTP thất bại:', err);
       // continue to try other methods
     }
   }
 
-  // Fallback to Gmail App Password if available (normalize spaces in app password)
+  // Dự phòng dùng Gmail App Password nếu có (chuẩn hóa khoảng trắng trong mật khẩu app)
   const EMAIL_USER = process.env.EMAIL_USER;
   const EMAIL_PASSWORD_RAW = process.env.EMAIL_PASSWORD;
   const EMAIL_PASSWORD = EMAIL_PASSWORD_RAW ? EMAIL_PASSWORD_RAW.replace(/\s+/g, '') : undefined;
@@ -100,7 +100,7 @@ async function createMailTransporter() {
         auth: { user: testAccount.user, pass: testAccount.pass }
       });
       await transporter.verify();
-      console.warn('[email] Using Ethereal test SMTP. Emails are not delivered to real inboxes.');
+  console.warn('[email] Đang sử dụng Ethereal test SMTP. Email sẽ không được gửi tới hộp thư thực.');
       return { transporter, from: testAccount.user, mode: 'ethereal' };
     } catch (err) {
       console.error('[email] Ethereal setup failed:', err);
@@ -129,8 +129,8 @@ exports.mailStatus = async (req, res) => {
     const ok = Boolean(transporter);
     return res.json({ ok, mode, from: from ? '[configured]' : null, ...snapshot });
   } catch (err) {
-    console.error('[mailStatus] error:', err);
-    return res.status(500).json({ ok: false, message: 'Mail diagnostics error' });
+  console.error('[mailStatus] lỗi:', err);
+  return res.status(500).json({ ok: false, message: 'Lỗi kiểm tra mail' });
   }
 };
 
@@ -159,7 +159,7 @@ exports.forgotPassword = async (req, res) => {
     try {
       const { transporter, from, mode } = await createMailTransporter();
       if (!transporter) {
-        console.error('[forgotPassword] No email transporter available. Please configure SMTP or Gmail env vars.');
+    console.error('[forgotPassword] Không có transporter email. Vui lòng cấu hình biến môi trường SMTP hoặc Gmail.');
       } else {
         const appBase = process.env.APP_BASE_URL || 'http://localhost:3001';
         const resetLink = `${appBase}/reset?token=${rawToken}`;
@@ -170,7 +170,7 @@ exports.forgotPassword = async (req, res) => {
           text: `Mã đặt lại: ${rawToken}\nLink nhanh: ${resetLink}\nHết hạn lúc: ${expires.toLocaleString()}`,
           html: `<p>Mã đặt lại: <b>${rawToken}</b></p><p>Link nhanh: <a href="${resetLink}">${resetLink}</a></p><p>Hết hạn: ${expires.toLocaleString()}</p>`
         });
-        console.log(`[email] sent via mode=${mode} messageId=${info?.messageId}`);
+  console.log(`[email] đã gửi qua mode=${mode} messageId=${info?.messageId}`);
         if (mode === 'ethereal') {
           const preview = nodemailer.getTestMessageUrl(info);
           if (preview) {
@@ -179,7 +179,7 @@ exports.forgotPassword = async (req, res) => {
         }
       }
     } catch (mailErr) {
-      console.error('[forgotPassword] send mail error:', mailErr);
+  console.error('[forgotPassword] lỗi gửi mail:', mailErr);
     }
 
   // Không trả token về response để đảm bảo an toàn; chỉ thông báo chung
