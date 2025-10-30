@@ -39,11 +39,13 @@ import Modal from './components/Modal';
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-export default function UserList({ refreshFlag, token }) {
+export default function UserList({ refreshFlag, token, currentUser }) {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState('user');
+  const [viewOnly, setViewOnly] = useState(false);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
 
   useEffect(() => { fetchUsers(); }, [refreshFlag]);
@@ -78,23 +80,40 @@ export default function UserList({ refreshFlag, token }) {
     setEditingUser(user);
     setEditName(user.name);
     setEditEmail(user.email);
+    setEditRole(user.role || 'user');
+    setViewOnly(false);
   };
 
   const handleEditCancel = () => {
     setEditingUser(null);
     setEditName("");
     setEditEmail("");
+    setViewOnly(false);
+  };
+
+  const handleView = (user) => {
+    setEditingUser(user);
+    setEditName(user.name);
+    setEditEmail(user.email);
+    setEditRole(user.role || 'user');
+    setViewOnly(true);
   };
 
   const handleEditSave = async () => {
     try {
-  const id = editingUser._id;
-  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-  await axios.put(`${API}/users/${id}`, { name: editName, email: editEmail }, config);
+      const id = editingUser._id;
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      // Update name/email first (allowed for admin and moderator)
+      await axios.put(`${API}/users/${id}`, { name: editName, email: editEmail }, config);
+      // If admin changed role, call role endpoint
+      if (currentUser?.role === 'admin' && editRole !== editingUser.role) {
+        await axios.patch(`${API}/users/${id}/role`, { role: editRole }, config);
+      }
       await fetchUsers(); // Luôn lấy lại danh sách user mới nhất từ backend
       setEditingUser(null);
       setEditName("");
       setEditEmail("");
+      setEditRole('user');
     } catch (err) {
       if (err.response && err.response.status === 404) {
         alert('Người dùng này đã bị xóa hoặc không tồn tại!');
@@ -102,6 +121,7 @@ export default function UserList({ refreshFlag, token }) {
         setEditingUser(null);
         setEditName("");
         setEditEmail("");
+        setEditRole('user');
       } else {
         alert('Cập nhật thất bại!');
       }
@@ -133,11 +153,21 @@ export default function UserList({ refreshFlag, token }) {
                     <td className="cell-name">{u.name}</td>
                     <td className="cell-email">{u.email}</td>
                     <td>
-                      <span className={`role-chip ${u.role === 'admin' ? 'admin' : 'user'}`}>{u.role || 'user'}</span>
+                      <span className={`role-chip ${u.role === 'admin' ? 'admin' : (u.role === 'moderator' ? 'moderator' : 'user')}`}>{u.role || 'user'}</span>
                     </td>
                     <td className="cell-actions">
-                      <button className="btn small" onClick={() => handleEdit(u)}>Sửa</button>
-                      <button className="btn small" onClick={() => setConfirmDeleteUser(u)}>Xóa</button>
+                      {u.role === 'admin' ? (
+                        // For admin accounts: only show View
+                        <button className="btn small" onClick={() => handleView(u)}>Xem</button>
+                      ) : (
+                        // For non-admin accounts: show Edit if current user is admin or moderator
+                        (currentUser?.role === 'admin' || currentUser?.role === 'moderator') ? (
+                          <button className="btn small" onClick={() => handleEdit(u)}>Sửa</button>
+                        ) : null
+                      )}
+                      {(currentUser?.role === 'admin' || String(currentUser?.id) === String(u._id)) && (
+                        <button className="btn small" onClick={() => setConfirmDeleteUser(u)}>Xóa</button>
+                      )}
                     </td>
                   </tr>
                 )
@@ -148,17 +178,26 @@ export default function UserList({ refreshFlag, token }) {
       )}
 
       {/* Modal sửa người dùng */}
-      <Modal open={!!editingUser} title="Chỉnh sửa người dùng" onClose={handleEditCancel}>
+      <Modal open={!!editingUser} title={viewOnly ? "Xem người dùng" : "Chỉnh sửa người dùng"} onClose={handleEditCancel}>
         <div className="user-form">
           <div className="form-group">
-            <input className="input" placeholder="Tên" value={editName} onChange={e => setEditName(e.target.value)} />
+            <input className="input" placeholder="Tên" value={editName} onChange={e => setEditName(e.target.value)} disabled={viewOnly} />
           </div>
           <div className="form-group">
-            <input className="input" placeholder="Email" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+            <input className="input" placeholder="Email" value={editEmail} onChange={e => setEditEmail(e.target.value)} disabled={viewOnly} />
           </div>
+          {currentUser?.role === 'admin' && (
+            <div className="form-group">
+              <select className="input" value={editRole} onChange={e=>setEditRole(e.target.value)} disabled={viewOnly}>
+                <option value="user">User</option>
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          )}
           <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-            <button className="btn small" onClick={handleEditCancel}>Hủy</button>
-            <button className="btn small" onClick={handleEditSave}>Lưu</button>
+            <button className="btn small" onClick={handleEditCancel}>{viewOnly ? 'Đóng' : 'Hủy'}</button>
+            {!viewOnly && <button className="btn small" onClick={handleEditSave}>Lưu</button>}
           </div>
         </div>
       </Modal>
