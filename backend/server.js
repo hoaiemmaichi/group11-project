@@ -54,6 +54,7 @@ const path = require('path');
 const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
 const uploadRoutes = require('./routes/upload');
+const logsRoutes = require('./routes/logs');
 
 // Nạp biến môi trường từ file .env trong thư mục backend
 dotenv.config({ path: __dirname + '/.env' });
@@ -160,6 +161,8 @@ app.use('/', userRoutes);
 app.use('/auth', authRoutes);
 // Mount upload routes
 app.use('/', uploadRoutes);
+// Mount logs (admin)
+app.use('/logs', logsRoutes);
 
 // Endpoint chẩn đoán: không dùng DB, phản hồi ngay lập tức (đặt sau body parser để có body)
 app.post('/ping', (req, res) => {

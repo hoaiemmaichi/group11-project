@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const logActivity = require('../middleware/logActivity');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 const crypto = require('crypto');
@@ -39,6 +40,8 @@ exports.signup = async (req, res) => {
     const user = new User({ name, email, password: hash });
     await user.save();
 
+    // Log signup activity
+    try { await logActivity({ userId: user._id, action: 'signup', ip: req.ip, meta: { email } }); } catch(_) {}
     // không trả password (kể cả đã băm)
   return res.status(201).json({ message: 'Tạo tài khoản thành công', user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl || null } });
   } catch (err) {
@@ -64,6 +67,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       console.log(`[auth] đăng nhập thất bại: không tìm thấy user với email=${email}`);
+      try { await logActivity({ userId: null, action: 'login_failed', ip: req.ip, meta: { email, reason: 'no_user' } }); } catch(_) {}
       return res.status(400).json({ message: 'Sai thông tin đăng nhập' });
     }
 
@@ -82,6 +86,7 @@ exports.login = async (req, res) => {
     }
     if (!ok) {
       console.log(`[auth] login failed: wrong password for email=${email}`);
+      try { await logActivity({ userId: user._id, action: 'login_failed', ip: req.ip, meta: { email, reason: 'wrong_password' } }); } catch(_) {}
       return res.status(400).json({ message: 'Sai thông tin đăng nhập' });
     }
 
@@ -110,6 +115,11 @@ exports.login = async (req, res) => {
   } catch (err) {
     console.error('[auth.login] lưu refresh token thất bại:', err);
   }
+  // Success login: reset rate limit for this key (if provided by middleware) and log
+  try {
+    if (req.rateLimitReset) req.rateLimitReset();
+  } catch(_) {}
+  try { await logActivity({ userId: user._id, action: 'login_success', ip: req.ip, meta: { email } }); } catch(_) {}
   return res.json({ token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role, avatarUrl: user.avatarUrl || null } });
   } catch (err) {
     console.error('[auth.login] lỗi:', err);

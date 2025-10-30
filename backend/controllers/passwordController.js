@@ -150,7 +150,8 @@ exports.forgotPassword = async (req, res) => {
     // Tạo token ngẫu nhiên và lưu hash + expiry
     const rawToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = hashToken(rawToken);
-    const expires = new Date(Date.now() + 1000 * 60 * 10); // 10 phút
+  // Reset token valid for 5 minutes (changed from 10 minutes)
+  const expires = new Date(Date.now() + 1000 * 60 * 5); // 5 phút
     user.resetPasswordTokenHash = tokenHash;
     user.resetPasswordExpiresAt = expires;
     await user.save();

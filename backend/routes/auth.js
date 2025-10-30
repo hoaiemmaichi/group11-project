@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const passwordController = require('../controllers/passwordController');
+const rateLimitLogin = require('../middleware/rateLimit');
 
 router.post('/signup', authController.signup);
-router.post('/login', authController.login);
+// Apply rate limiting to login attempts
+router.post('/login', rateLimitLogin(), authController.login);
 router.post('/logout', authController.logout);
 router.post('/refresh', authController.refresh);
 

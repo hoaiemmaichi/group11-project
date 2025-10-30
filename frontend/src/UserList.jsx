@@ -45,7 +45,6 @@ export default function UserList({ refreshFlag, token, currentUser }) {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState('user');
-  const [viewOnly, setViewOnly] = useState(false);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
 
   useEffect(() => { fetchUsers(); }, [refreshFlag]);
@@ -81,7 +80,6 @@ export default function UserList({ refreshFlag, token, currentUser }) {
     setEditName(user.name);
     setEditEmail(user.email);
     setEditRole(user.role || 'user');
-    setViewOnly(false);
   };
 
   const handleEditCancel = () => {
@@ -156,14 +154,8 @@ export default function UserList({ refreshFlag, token, currentUser }) {
                       <span className={`role-chip ${u.role === 'admin' ? 'admin' : (u.role === 'moderator' ? 'moderator' : 'user')}`}>{u.role || 'user'}</span>
                     </td>
                     <td className="cell-actions">
-                      {u.role === 'admin' ? (
-                        // For admin accounts: only show View
-                        <button className="btn small" onClick={() => handleView(u)}>Xem</button>
-                      ) : (
-                        // For non-admin accounts: show Edit if current user is admin or moderator
-                        (currentUser?.role === 'admin' || currentUser?.role === 'moderator') ? (
-                          <button className="btn small" onClick={() => handleEdit(u)}>Sửa</button>
-                        ) : null
+                      {(currentUser?.role === 'admin' || currentUser?.role === 'moderator') && (
+                        <button className="btn small" onClick={() => handleEdit(u)}>Sửa</button>
                       )}
                       {(currentUser?.role === 'admin' || String(currentUser?.id) === String(u._id)) && (
                         <button className="btn small" onClick={() => setConfirmDeleteUser(u)}>Xóa</button>
@@ -188,7 +180,7 @@ export default function UserList({ refreshFlag, token, currentUser }) {
           </div>
           {currentUser?.role === 'admin' && (
             <div className="form-group">
-              <select className="input" value={editRole} onChange={e=>setEditRole(e.target.value)} disabled={viewOnly}>
+              <select className="input" value={editRole} onChange={e=>setEditRole(e.target.value)}>
                 <option value="user">User</option>
                 <option value="moderator">Moderator</option>
                 <option value="admin">Admin</option>

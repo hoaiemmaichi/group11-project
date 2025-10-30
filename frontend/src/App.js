@@ -34,6 +34,7 @@ import Modal from './components/Modal';
 import Profile from './Profile';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
+import LogList from './LogList';
 
 function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
@@ -43,6 +44,7 @@ function App() {
   const [showForgot, setShowForgot] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
   const [loginNotice, setLoginNotice] = useState('');
 
   const handleUserAdded = () => {
@@ -109,6 +111,9 @@ function App() {
                 {currentUser.role === 'admin' && (
                   <AddUser onAdded={handleUserAdded} token={token} currentUser={currentUser} />
                 )}
+                {currentUser.role === 'admin' && (
+                  <button className="btn small" onClick={() => setShowLogs(true)}>Xem logs</button>
+                )}
                 <button className="btn small" onClick={() => setShowLogoutConfirm(true)}>Đăng xuất</button>
               </div>
             </div>
@@ -152,6 +157,9 @@ function App() {
             <button className="btn small" onClick={() => setShowLogoutConfirm(false)}>Hủy</button>
             <button className="btn small danger" onClick={() => { setShowLogoutConfirm(false); handleLogout(); }}>Đăng xuất</button>
           </div>
+        </Modal>
+        <Modal open={showLogs} title="Activity logs" onClose={() => setShowLogs(false)} size="large">
+          <LogList token={token} />
         </Modal>
       </div>
     </div>
