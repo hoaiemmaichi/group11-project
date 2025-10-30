@@ -18,8 +18,11 @@ exports.getUsers = async (req, res) => {
 // POST: thêm user (MongoDB)
 exports.createUser = async (req, res) => {
   try {
-    const { name, email } = req.body;
-    const newUser = new User({ name, email });
+    const { name, email, role } = req.body || {};
+    const allowedRoles = ['user', 'moderator', 'admin'];
+    const payload = { name, email };
+    if (role && allowedRoles.includes(role)) payload.role = role;
+    const newUser = new User(payload);
     await newUser.save();
     return res.status(201).json(newUser);
   } catch (error) {
@@ -30,12 +33,28 @@ exports.createUser = async (req, res) => {
 // PUT: sửa user (ưu tiên MongoDB theo _id, fallback mảng tạm theo id)
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
-  const payload = req.body;
+  const requesterRole = req.user?.role || 'user';
+  const body = req.body || {};
+  // Chỉ cho phép cập nhật các trường an toàn từ endpoint này
+  // - Moderator: name, email
+  // - Admin: name, email (thay đổi role dùng endpoint riêng PATCH /users/:id/role)
+  const safeFields = ['name', 'email'];
+  const payload = Object.fromEntries(Object.entries(body).filter(([k]) => safeFields.includes(k)));
   try {
     // Nếu id hợp lệ theo ObjectId, thử cập nhật MongoDB trước
     if (mongoose.Types.ObjectId.isValid(id)) {
-      const updated = await User.findByIdAndUpdate(id, payload, { new: true });
-      if (updated) return res.json(updated);
+      // Load target user to check role-based restrictions
+      const target = await User.findById(id);
+      if (!target) {
+        // fallback to next logic (memoryUsers)
+      } else {
+        // Prevent non-admins (e.g., moderators) from editing admin accounts
+        if (String(target.role) === 'admin' && requesterRole !== 'admin') {
+          return res.status(403).json({ message: 'Không có quyền chỉnh sửa tài khoản admin' });
+        }
+        const updated = await User.findByIdAndUpdate(id, payload, { new: true });
+        if (updated) return res.json(updated);
+      }
     }
 
     // Fallback: cập nhật trong mảng tạm theo trường id
@@ -67,6 +86,26 @@ exports.deleteUser = async (req, res) => {
   if (memoryUsers.length !== before) return res.json({ message: 'Xóa người dùng thành công' });
 
   return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// PATCH /users/:id/role — chỉ Admin được phép
+exports.updateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body || {};
+    const allowedRoles = ['user', 'moderator', 'admin'];
+    if (!role || !allowedRoles.includes(role)) {
+      return res.status(400).json({ message: 'Role không hợp lệ' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'ID không hợp lệ' });
+    }
+    const updated = await User.findByIdAndUpdate(id, { role }, { new: true }).select('-password');
+    if (!updated) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    return res.json(updated);
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
