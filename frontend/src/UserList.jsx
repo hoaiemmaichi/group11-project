@@ -86,6 +86,15 @@ export default function UserList({ refreshFlag, token, currentUser }) {
     setEditingUser(null);
     setEditName("");
     setEditEmail("");
+    setViewOnly(false);
+  };
+
+  const handleView = (user) => {
+    setEditingUser(user);
+    setEditName(user.name);
+    setEditEmail(user.email);
+    setEditRole(user.role || 'user');
+    setViewOnly(true);
   };
 
   const handleEditSave = async () => {
@@ -161,13 +170,13 @@ export default function UserList({ refreshFlag, token, currentUser }) {
       )}
 
       {/* Modal sửa người dùng */}
-      <Modal open={!!editingUser} title="Chỉnh sửa người dùng" onClose={handleEditCancel}>
+      <Modal open={!!editingUser} title={viewOnly ? "Xem người dùng" : "Chỉnh sửa người dùng"} onClose={handleEditCancel}>
         <div className="user-form">
           <div className="form-group">
-            <input className="input" placeholder="Tên" value={editName} onChange={e => setEditName(e.target.value)} />
+            <input className="input" placeholder="Tên" value={editName} onChange={e => setEditName(e.target.value)} disabled={viewOnly} />
           </div>
           <div className="form-group">
-            <input className="input" placeholder="Email" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+            <input className="input" placeholder="Email" value={editEmail} onChange={e => setEditEmail(e.target.value)} disabled={viewOnly} />
           </div>
           {currentUser?.role === 'admin' && (
             <div className="form-group">
@@ -179,8 +188,8 @@ export default function UserList({ refreshFlag, token, currentUser }) {
             </div>
           )}
           <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-            <button className="btn small" onClick={handleEditCancel}>Hủy</button>
-            <button className="btn small" onClick={handleEditSave}>Lưu</button>
+            <button className="btn small" onClick={handleEditCancel}>{viewOnly ? 'Đóng' : 'Hủy'}</button>
+            {!viewOnly && <button className="btn small" onClick={handleEditSave}>Lưu</button>}
           </div>
         </div>
       </Modal>
