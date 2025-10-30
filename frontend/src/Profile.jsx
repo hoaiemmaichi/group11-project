@@ -5,7 +5,6 @@ import Modal from './components/Modal';
 const API = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 export default function Profile({ token, onUpdated, currentUser, setCurrentUser }) {
-
   // Cờ tính năng: hiển thị các phần theo yêu cầu. Đặt true để BẬT.
   const SHOW_AVATAR_FEATURE = true; // Bật lại upload/hiển thị avatar
   const SHOW_DELETE_ACCOUNT = true; // Bật lại nút "Xóa tài khoản"
@@ -15,18 +14,15 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
   const [profileData, setProfileData] = useState({ name: currentUser?.name || '', email: currentUser?.email || '' });
   // Draft data for the edit modal (so Cancel/X discards changes)
   const [draft, setDraft] = useState({ name: '', email: '' });
-
   const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatarUrl || '');
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [openEdit, setOpenEdit] = useState(false);
-
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [copied, setCopied] = useState(false);
-
 
   useEffect(() => {
     async function fetchProfile() {
@@ -35,11 +31,9 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
         const res = await axios.get(`${API}/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-
         const { name, email, avatarUrl: aurl } = res.data || {};
         setProfileData({ name: name || '', email: email || '' });
         if (aurl) setAvatarUrl(aurl);
-
       } catch (err) {
         const serverMsg = err.response?.data?.message || err.message;
         setMessage(serverMsg || 'Không thể tải hồ sơ');
@@ -50,7 +44,6 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setDraft(prev => ({ ...prev, [name]: value }));
   };
 
@@ -88,7 +81,6 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
       setMessage('Cập nhật thành công');
       setShowSaveConfirm(false);
       closeEditModal();
-
     } catch (err) {
       const serverMsg = err.response?.data?.message || err.message;
       setMessage(serverMsg || 'Cập nhật thất bại');
@@ -97,21 +89,18 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
     }
   };
 
-
   // Khi submit form, chỉ mở hộp xác nhận (không lưu ngay)
   const handleSubmit = (e) => {
     e.preventDefault();
     const trimmedName = (draft.name || '').trim();
     if (!trimmedName) { setMessage('Tên không được để trống'); return; }
     setShowSaveConfirm(true);
-
   };
 
   return (
     <div style={{padding:18}}>
       <div className="profile-card">
         <div className="profile-header">
-
           {SHOW_AVATAR_FEATURE && (
             <div className="profile-avatar" style={{width:56,height:56,borderRadius:'50%',overflow:'hidden',marginRight:10}}>
               {avatarUrl ? (
@@ -135,24 +124,20 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
             {SHOW_DELETE_ACCOUNT && (
               <button className="btn small danger" onClick={() => setShowDeleteConfirm(true)}>Xóa tài khoản</button>
             )}
-
           </div>
         </div>
 
         <div className="profile-details">
           <div className="profile-field">
             <div className="profile-label">Họ và tên</div>
-
             <div className="profile-value">{profileData.name}</div>
           </div>
           <div className="profile-field">
             <div className="profile-label">Email</div>
             <div className="profile-value">{profileData.email}</div>
-
           </div>
         </div>
       </div>
-
 
       <Modal open={openEdit} title="Cập nhật thông tin" onClose={closeEditModal}>
         <form className="user-form" onSubmit={handleSubmit}>
@@ -266,7 +251,6 @@ export default function Profile({ token, onUpdated, currentUser, setCurrentUser 
             </button>
           </div>
         </Modal>
-
     </div>
   );
 }
