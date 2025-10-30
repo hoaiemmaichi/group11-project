@@ -12,6 +12,11 @@ function requireRole(...allowedRoles) {
   };
 }
 
+// Alias: checkRole(...roles) — same as requireRole for readability with spec
+function checkRole(...roles) {
+  return requireRole(...roles);
+}
+
 // Allow if admin, otherwise only if acting on self (req.params.id matches req.user.id)
 function adminOrSelfByParamId(paramName = 'id') {
   return (req, res, next) => {
@@ -25,6 +30,6 @@ function adminOrSelfByParamId(paramName = 'id') {
   };
 }
 
-module.exports = { requireRole, adminOrSelfByParamId };
+module.exports = { requireRole, checkRole, adminOrSelfByParamId };
 
 
