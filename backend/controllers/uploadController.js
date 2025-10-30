@@ -4,31 +4,41 @@ const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const path = require('path');
 const User = require('../models/User');
+const http = require('http');
+const https = require('https');
 
 // Kỳ vọng biến môi trường CLOUDINARY_URL hoặc cụ thể CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 // Cấu hình có điều kiện để CLOUDINARY_URL có thể được sử dụng nếu được cung cấp
 (() => {
-  const hasSeparate = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
   try {
-    if (hasSeparate) {
-      cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET,
-        secure: true
-      });
-    } else {
-      // Let SDK read CLOUDINARY_URL from env; ensure secure URLs
-      cloudinary.config({ secure: true });
-    }
-  } catch (_) {}
+    // Explicitly set Cloudinary credentials (hard-coded as requested).
+    // These values are used to initialize the SDK so uploads go to the
+    // account "dnv6uzyyk" and into the configured folder.
+    cloudinary.config({
+      cloud_name: 'dnv6uzyyk',
+      api_key: '698933791871328',
+      api_secret: 'agJTrwvw7WIL0BANvOFwgNvgtCU',
+      secure: true,
+    });
+  } catch (err) {
+    console.error('Cloudinary config error:', err);
+  }
 })();
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 function hasCloudinaryConfig() {
-  return Boolean((process.env.CLOUDINARY_URL && String(process.env.CLOUDINARY_URL).trim()) ||
-    (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET));
+  // Consider env vars OR an existing cloudinary SDK config (so hard-coded config also counts)
+  try {
+    const cfg = cloudinary.config ? cloudinary.config() : null;
+    const hasSdkCfg = cfg && (cfg.cloud_name || cfg.api_key || cfg.api_secret);
+    return Boolean((process.env.CLOUDINARY_URL && String(process.env.CLOUDINARY_URL).trim()) ||
+      (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) ||
+      hasSdkCfg);
+  } catch (e) {
+    return Boolean((process.env.CLOUDINARY_URL && String(process.env.CLOUDINARY_URL).trim()) ||
+      (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET));
+  }
 }
 
 function uploadBufferToCloudinary(buffer, folder) {
@@ -63,6 +73,33 @@ async function saveBufferToLocal(buffer, originalName, mime) {
   return { filename, filePath, relPath: `uploads/avatars/${filename}` };
 }
 
+// Tải một URL ảnh về buffer (hỗ trợ http/https)
+function fetchImageBufferFromUrl(url) {
+  return new Promise((resolve, reject) => {
+    try {
+      const parsed = new URL(url);
+      const getter = parsed.protocol === 'http:' ? http : https;
+      const req = getter.get(parsed, (res) => {
+        const status = res.statusCode || 0;
+        if (status >= 400) return reject(new Error('HTTP error ' + status));
+        const contentType = res.headers['content-type'];
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          const pathname = parsed.pathname || '';
+          const filename = path.basename(pathname) || null;
+          resolve({ buffer, contentType, filename });
+        });
+        res.on('error', (err) => reject(err));
+      });
+      req.on('error', (err) => reject(err));
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 // Chuỗi middleware: auth -> upload.single('avatar') -> handler
 exports.multerSingle = upload.single('avatar');
 
@@ -81,10 +118,39 @@ exports.uploadStatus = (req, res) => {
 exports.uploadAvatar = async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ message: 'Chưa xác thực' });
-    if (!req.file) return res.status(400).json({ message: 'Thiếu file avatar' });
+    // Hỗ trợ 2 trường hợp:
+    // 1) upload multipart/form-data (req.file)
+    // 2) gửi JSON { imageUrl: 'https://...' } để backend tải về và upload lên Cloudinary
+    let fileBuffer = null;
+    let fileMime = null;
+    let originalName = null;
+
+    if (req.file && req.file.buffer) {
+      fileBuffer = req.file.buffer;
+      fileMime = req.file.mimetype;
+      originalName = req.file.originalname;
+    } else if (req.body && req.body.imageUrl) {
+      // tải ảnh từ URL
+      const imageUrl = String(req.body.imageUrl).trim();
+      if (!/^https?:\/\//i.test(imageUrl)) {
+        return res.status(400).json({ message: 'imageUrl phải là đường dẫn bắt đầu bằng http:// hoặc https://' });
+      }
+      // fetch buffer
+      try {
+        const fetched = await fetchImageBufferFromUrl(imageUrl);
+        fileBuffer = fetched.buffer;
+        fileMime = fetched.contentType || '';
+        originalName = fetched.filename || path.basename(new URL(imageUrl).pathname || 'image');
+      } catch (err) {
+        console.error('Error fetching image from URL:', err);
+        return res.status(400).json({ message: 'Không thể tải ảnh từ URL cung cấp' });
+      }
+    } else {
+      return res.status(400).json({ message: 'Thiếu file avatar hoặc imageUrl' });
+    }
     if (!hasCloudinaryConfig()) {
       // Fallback: lưu file local và trả URL tĩnh từ backend
-      const saved = await saveBufferToLocal(req.file.buffer, req.file.originalname, req.file.mimetype);
+      const saved = await saveBufferToLocal(fileBuffer, originalName, fileMime);
       // Xóa file cũ nếu trước đó dùng local
       try {
         const me = await User.findById(req.user.id).select('avatarUrl');
@@ -105,18 +171,38 @@ exports.uploadAvatar = async (req, res) => {
 
     const folder = process.env.CLOUDINARY_FOLDER || 'group11/avatars';
 
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(String(fileMime || '').toLowerCase())) {
+      return res.status(400).json({ message: 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)' });
+    }
+
     // Xóa ảnh cũ nếu có để tránh rác (không bắt buộc)
     try {
       const me = await User.findById(req.user.id).select('avatarPublicId');
       if (me?.avatarPublicId) {
-        cloudinary.uploader.destroy(me.avatarPublicId).catch(() => {});
+        await cloudinary.uploader.destroy(me.avatarPublicId);
       }
-    } catch (_) {}
+    } catch (error) {
+      console.error('Error deleting old image:', error);
+    }
 
-    const result = await uploadBufferToCloudinary(req.file.buffer, folder);
+    let result;
+    try {
+  result = await uploadBufferToCloudinary(fileBuffer, folder);
+      if (!result || !result.secure_url) {
+        throw new Error('Upload to Cloudinary failed');
+      }
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      return res.status(500).json({ message: 'Lỗi khi tải ảnh lên Cloudinary' });
+    }
 
-    // Lưu vào user
-    const update = { avatarUrl: result.secure_url, avatarPublicId: result.public_id };
+  // Log kết quả upload để debug
+  console.log('[uploadAvatar] cloudinary result:', result && result.public_id, result && result.secure_url);
+
+  // Lưu vào user
+  const update = { avatarUrl: result.secure_url, avatarPublicId: result.public_id };
     const updated = await User.findByIdAndUpdate(req.user.id, update, { new: true }).select('-password');
     if (!updated) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
