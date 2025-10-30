@@ -230,6 +230,11 @@ body {
   color: #0d47a1;
   background: #e3f2fd;
 }
+.role-chip.moderator {
+  border-color: #ffe0b2;
+  color: #e65100;
+  background: #fff3e0;
+}
 .empty {
   color: #b0bec5;
   text-align: center;

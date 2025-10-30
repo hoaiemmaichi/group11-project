@@ -49,9 +49,10 @@ import Modal from "./components/Modal";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-export default function AddUser({ onAdded, token }) {
+export default function AddUser({ onAdded, token, currentUser }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState('user');
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false); // modal tạo user
   const [noticeOpen, setNoticeOpen] = useState(false); // modal thông báo
@@ -77,10 +78,13 @@ export default function AddUser({ onAdded, token }) {
     try {
       setSubmitting(true);
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-      const response = await axios.post(`${API}/users`, { name: trimmedName, email: trimmedEmail }, config);
+  const payload = { name: trimmedName, email: trimmedEmail };
+  if (currentUser?.role === 'admin' && role) payload.role = role;
+  const response = await axios.post(`${API}/users`, payload, config);
       console.log('Response:', response.data);
       setName("");
       setEmail("");
+  setRole('user');
       if (onAdded) onAdded(); // báo parent refresh danh sách
       setModalMsg('Thêm user thành công!');
       setNoticeOpen(true);
@@ -112,6 +116,15 @@ export default function AddUser({ onAdded, token }) {
           <div className="form-group">
             <input className="input" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Gmail" type="email" required />
           </div>
+          {currentUser?.role === 'admin' && (
+            <div className="form-group">
+              <select className="input" value={role} onChange={e=>setRole(e.target.value)}>
+                <option value="user">User</option>
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          )}
           <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
             <button type="button" className="btn small" onClick={() => setModalOpen(false)}>Hủy</button>
             <button className="btn small" type="submit" disabled={submitting}>{submitting ? 'Đang thêm...' : 'Thêm'}</button>

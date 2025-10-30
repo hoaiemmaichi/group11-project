@@ -1,6 +1,11 @@
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000}
 .modal-card{background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:0;max-width:420px;width:94%;overflow:hidden}
+.modal-card.large{max-width:980px;width:96%}
+.modal-card.xl{max-width:1200px;width:98%}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eef3fb}
 .modal-title{margin:0;color:#0d47a1;font-size:0.98rem}
 .modal-close{background:transparent;border:none;font-size:20px;line-height:1;cursor:pointer;color:#546e7a}
 .modal-body{color:#37474f;padding:14px 16px;white-space:normal}
+.modal-body .table{width:100%;border-collapse:collapse}
+.modal-body .table thead th{position:sticky;top:0;background:#fff;z-index:2}
+.modal-body pre{background:#f7f9fc;padding:8px;border-radius:6px;overflow:auto;max-height:360px}
