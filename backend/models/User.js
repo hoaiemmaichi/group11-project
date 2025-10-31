@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   // Store hashed password; exclude from queries by default
   password: { type: String, required: false, select: false },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  // Advanced RBAC: user | moderator | admin
+  role: { type: String, enum: ['user', 'moderator', 'admin'], default: 'user' },
   // Password reset
   resetPasswordTokenHash: { type: String, select: false },
   resetPasswordExpiresAt: { type: Date },
