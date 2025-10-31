@@ -18,6 +18,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'https://group11-project-jmv4.vercel.app', // ✅ domain frontend trên Vercel
+  'https://group11-project-sage.vercel.app',
 ];
 
 app.use(cors({
