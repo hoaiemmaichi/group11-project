@@ -1,0 +1,72 @@
+{
+  "info": {
+    "name": "Group11 - Logs API Tests",
+    "_postman_id": "group11-logs-001",
+    "description": "Requests to test signup, login, get logs, failed login, and SSE stream.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Signup (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Admin Test\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"Pass1234\",\n  \"confirmPassword\": \"Pass1234\"\n}" },
+        "url": { "raw": "{{baseUrl}}/auth/signup", "host": ["{{baseUrl}}"], "path": ["auth","signup"] }
+      }
+    },
+    {
+      "name": "Login (save token)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Pass1234\"\n}" },
+        "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.token) {",
+              "  pm.environment.set('token', json.token);",
+              "  if (json.refreshToken) pm.environment.set('refreshToken', json.refreshToken);",
+              "  if (json.user) pm.environment.set('currentUser', JSON.stringify(json.user));",
+              "}",
+              "pm.test('login 200', () => pm.response.code === 200);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get logs (admin)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/logs?limit=50&page=1", "host": ["{{baseUrl}}"], "path": ["logs"], "query": [ { "key": "limit", "value": "50" }, { "key": "page", "value": "1" } ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('logs ok', () => pm.response.code === 200);" ], "type": "text/javascript" } } ]
+    },
+    {
+      "name": "Failed login (wrong pass)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"WrongPass\"\n}" },
+        "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] }
+      }
+    },
+    {
+      "name": "SSE stream (raw)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/logs/stream?token={{token}}", "host": ["{{baseUrl}}"], "path": ["logs","stream"], "query": [ { "key": "token", "value": "{{token}}" } ] }
+      }
+    }
+  ],
+  "variable": [ { "key": "baseUrl", "value": "http://localhost:3000" }, { "key": "token", "value": "" } ]
+}
