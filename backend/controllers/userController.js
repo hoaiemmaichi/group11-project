@@ -43,18 +43,8 @@ exports.updateUser = async (req, res) => {
   try {
     // Nếu id hợp lệ theo ObjectId, thử cập nhật MongoDB trước
     if (mongoose.Types.ObjectId.isValid(id)) {
-      // Load target user to check role-based restrictions
-      const target = await User.findById(id);
-      if (!target) {
-        // fallback to next logic (memoryUsers)
-      } else {
-        // Prevent non-admins (e.g., moderators) from editing admin accounts
-        if (String(target.role) === 'admin' && requesterRole !== 'admin') {
-          return res.status(403).json({ message: 'Không có quyền chỉnh sửa tài khoản admin' });
-        }
-        const updated = await User.findByIdAndUpdate(id, payload, { new: true });
-        if (updated) return res.json(updated);
-      }
+      const updated = await User.findByIdAndUpdate(id, payload, { new: true });
+      if (updated) return res.json(updated);
     }
 
     // Fallback: cập nhật trong mảng tạm theo trường id

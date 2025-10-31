@@ -35,6 +35,11 @@ import Profile from './Profile';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import LogList from './LogList';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminPage from './AdminPage';
+import { useDispatch } from 'react-redux';
+import { setCredentials, clearAuth } from './features/authSlice';
 
 function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
@@ -58,14 +63,18 @@ function App() {
     } catch (e) { return null; }
   });
 
+  const dispatch = useDispatch();
+
   const handleLogin = (newToken, user, refreshToken) => {
     setToken(newToken);
-    try { localStorage.setItem('token', newToken); } catch(_){}
+    try { localStorage.setItem('token', newToken); } catch(_){ }
     if (refreshToken) { try { localStorage.setItem('refreshToken', refreshToken); } catch(_){} }
     if (user) {
       setCurrentUser(user);
-      try { localStorage.setItem('currentUser', JSON.stringify(user)); } catch(_){}
+      try { localStorage.setItem('currentUser', JSON.stringify(user)); } catch(_){ }
     }
+    // sync redux
+    dispatch(setCredentials({ token: newToken, refreshToken, user }));
     setShowLogin(false);
     setShowSignUp(false);
   };
@@ -84,10 +93,11 @@ function App() {
     }
     setToken(null);
     setCurrentUser(null);
-    try { localStorage.removeItem('token'); localStorage.removeItem('currentUser'); localStorage.removeItem('refreshToken'); } catch(_){}
+    try { localStorage.removeItem('token'); localStorage.removeItem('currentUser'); localStorage.removeItem('refreshToken'); } catch(_){ }
+    dispatch(clearAuth());
   };
 
-  return (
+  const homeContent = (
     <div className="app-container">
       <div className={`main-card${currentUser?.role === 'admin' ? ' admin' : ''}`}>
         <h1 className="main-title">Quản lý người dùng</h1>
@@ -163,6 +173,20 @@ function App() {
         </Modal>
       </div>
     </div>
+  );
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={homeContent} />
+        <Route element={<ProtectedRoute />}> 
+          <Route path="/profile" element={<Profile token={token} currentUser={currentUser} setCurrentUser={setCurrentUser} />} />
+        </Route>
+        <Route element={<ProtectedRoute requiredRole="admin" />}> 
+          <Route path="/admin" element={<AdminPage currentUser={currentUser} token={token} />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
